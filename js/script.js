@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+  const DAY_STRING = ['день', 'дня', 'дней'];
+
   const DATA = {
     whichSite: ['landing', 'multiPage', 'onlineStore'],
     price: [150, 250, 350],
@@ -10,9 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
     analyticsGoogle: [15, 25, 30],
     sendOrder: 10,
     deadlineDay: [
-      [2, 7],
-      [3, 10],
-      [7, 14]
+      [2, 10],
+      [4, 14],
+      [7, 21]
     ],
     deadlinePercent: [20, 17, 15]
   }
@@ -24,7 +26,19 @@ document.addEventListener('DOMContentLoaded', () => {
     endButton = document.querySelector('.end-button'),
     total = document.querySelector('.total'),
     fastRange = document.querySelector('.fast-range'),
-    totalPriceSum = document.querySelector('.total_price__sum');
+    totalPriceSum = document.querySelector('.total_price__sum'),
+    adapt = document.getElementById('adapt'),
+    mobileTemplates = document.getElementById('mobileTemplates'),
+    typeSite = document.querySelector('.type-site'),
+    maxDeadLine = document.querySelector('.max-deadline'),
+    rangeDeadline = document.querySelector('.range-deadline'),
+    deadlineValue = document.querySelector('.deadline-value');
+
+
+  function declOfNum(n, titles) {
+    return n + ' ' + titles[n % 10 === 1 && n % 100 !== 11 ?
+      0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2];
+  }
 
   function showElem(elem) {
     elem.style.display = 'block';
@@ -34,12 +48,23 @@ document.addEventListener('DOMContentLoaded', () => {
     elem.style.display = 'none';
   }
 
+  function renderTextContent(total, site, maxDay, minDay) {
+    totalPriceSum.textContent = total;
+    typeSite.textContent = site;
+    maxDeadLine.textContent = declOfNum(maxDay, DAY_STRING);
+    rangeDeadline.min = minDay;
+    rangeDeadline.max = maxDay;
+    deadlineValue.textContent = declOfNum(rangeDeadline.value, DAY_STRING);
+  }
+
   // Скидання всіх чекбоксів при виборі сайту
   function priceCalculation(elem) {
     let result = 0,
       index = 0,
-      options = [];
-
+      options = [],
+      site = '',
+      maxDeadlineDay = DATA.deadlineDay[index][1];
+      minDeadlineDay = DATA.deadlineDay[index][0];
 
     if (elem.name === 'whichSite') {
       for (const item of formCalculate.elements) {
@@ -53,6 +78,9 @@ document.addEventListener('DOMContentLoaded', () => {
     for (const item of formCalculate.elements) {
       if (item.name === 'whichSite' && item.checked) {
         index = DATA.whichSite.indexOf(item.value);
+        site = item.dataset.site;
+        maxDeadlineDay = DATA.deadlineDay[index][1];
+        minDeadlineDay = DATA.deadlineDay[index][0];
       } else if (item.classList.contains('calc-handler') && item.checked) {
         options.push(item.value)
       }
@@ -76,12 +104,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     result += DATA.price[index];
 
-    totalPriceSum.textContent = result;
+    renderTextContent(result, site, maxDeadlineDay, minDeadlineDay);
   }
   // Скидання всіх чекбоксів при виборі сайту
 
   function handlerCallBackForm(event) {
     const target = event.target;
+
+    if (adapt.checked) {
+      mobileTemplates.disabled = false;
+    } else {
+      mobileTemplates.disabled = true;
+      mobileTemplates.checked = false;
+    }
 
     if (target.classList.contains('want-faster')) {
       target.checked ? showElem(fastRange) : hideElem(fastRange);
